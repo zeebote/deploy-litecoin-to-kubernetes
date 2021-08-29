@@ -1,0 +1,73 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mining
+  labels:
+    app: litecoin
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: litecoin-svc
+  namespace: mining
+  labels:
+    app: litecoin
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    name: lp
+    protocol: TCP
+    targetPort: 9333
+  selector:
+    app: litecoin
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: litecoin-pvc
+  namespace: mining
+spec:
+  storageClassName: "" #either empty string or storage class match with your pre-provisioned pv     
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: miner
+  namespace: mining
+spec:
+  serviceName: "litecoin-svc"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: litecoin
+  template:
+    metadata:
+      labels:
+        app: litecoin
+    spec:
+      containers:
+      - name: minion
+        image: trucv/litecoin:0.18.1
+        ports:
+        - containerPort: 9333
+          name: lp
+        volumeMounts:
+        - name: litecoin-data
+          mountPath: /data/litecoin
+        resources:
+          limits:
+            cpu: "4"
+            memory: 8Gi
+          requests:
+            cpu: 50m
+            memory: 256Mi
+      volumes:
+      - name: litecoin-data
+        persistentVolumeClaim:
+          claimName: litecoin-pvc
