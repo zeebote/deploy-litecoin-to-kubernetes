@@ -4,7 +4,7 @@ Build docker image for litecoin and deploy it to Kubernetes with jenkins-ci
 This docker build has been modified from this [repo](https://github.com/salessandri/docker-litecoind).
 I make a few modification to meet my requirements such as setup default args, running as non root user 
 and using rpcauth for authentication instead of username and password which is going to be obsoleted. 
-the image can be run as:
+After build complete, the image can be run as:
 
 `docker run trucv/litecoin:0.18.1`
 
